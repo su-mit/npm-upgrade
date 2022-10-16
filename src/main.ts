@@ -1,25 +1,15 @@
-import { exec } from "child_process";
+import execCommand from "./execCommand";
+import { readPackages } from "./readPackages";
 
-import { readFileSync } from "fs";
+const { dependencies, devDependencies } = readPackages();
 
-const package_JSON = JSON.parse(readFileSync("./package.json").toString());
+for (let npm_package of dependencies.concat(devDependencies)) {
+	const status = execCommand(`yarn add ${npm_package}`);
+	console.log(status);
+}
 
-const dependencies = Object.keys(package_JSON.dependencies);
-const devDependencies = Object.keys(package_JSON.devDependencies);
+// Removing node_modules
+execCommand(`rm -rf node_modules`);
 
-// console.log(`Dependencies: ${dependencies}`);
-// console.log(`Dev dependencies: ${devDependencies}`);
-
-exec(
-	"rm -rf node_modules && npm update --save-dev && npm update --save",
-	(err, stdout, stderr) => {
-		if (err) {
-			// node couldn't execute the command
-			return err;
-		}
-
-		// the *entire* stdout and stderr (buffered)
-		console.log(`stdout: ${stdout}`);
-		console.log(`stderr: ${stderr}`);
-	}
-);
+// Re-initlizing the dependencies
+execCommand(`yarn`);
